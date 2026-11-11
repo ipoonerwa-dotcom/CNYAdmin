@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0c0f16" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>CNY 开发者后台</title>
+<style>
+  :root{
+    --bg:#0c0f16; --card:#141924; --line:#232a38; --text:#e7ecf5; --muted:#8b95a9; --dim:#5d6678;
+    --green:#3ddc84; --red:#ff5c6c; --amber:#ffb340; --blue:#4c8dff;
+    --font:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+    --safe-t: env(safe-area-inset-top);
+    --safe-b: env(safe-area-inset-bottom);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 var(--font);overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:calc(20px + var(--safe-t)) 18px calc(60px + var(--safe-b))}
+  h1{font-size:19px;margin:0}
+  h2{font-size:15px;margin:0 0 14px;color:var(--text)}
+  a{color:var(--blue);word-break:break-all}
+  code,.mono{font-family:var(--mono);word-break:break-all}
+
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 0 18px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  header .sub{font-size:12px;color:var(--dim)}
+  .spacer{margin-left:auto}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid var(--line);background:#0f131c;white-space:nowrap}
+  .pill.ok{color:var(--green);border-color:rgba(61,220,132,.4)}
+  .pill.warn{color:var(--amber);border-color:rgba(255,179,64,.4)}
+  .pill.bad{color:var(--red);border-color:rgba(255,92,108,.4)}
+
+  button{font:600 13px var(--font);padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:#1b2231;color:var(--text);cursor:pointer;min-height:38px;touch-action:manipulation}
+  button:hover:not(:disabled){background:#222b3d}
+  button:active:not(:disabled){transform:scale(.98)}
+  button:disabled{opacity:.42;cursor:not-allowed}
+  button.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+  button.pri:hover:not(:disabled){background:#3d7bf0}
+  button.danger{background:#3a1c22;border-color:#5c2a33;color:#ff9aa5}
+  button.sm{padding:6px 12px;font-size:12px;min-height:32px}
+
+  input,textarea,select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:#0f131c;color:var(--text);font:13px var(--mono);outline:none;-webkit-appearance:none;min-height:38px}
+  input:focus,textarea:focus{border-color:var(--blue)}
+  textarea{min-height:110px;resize:vertical;line-height:1.5}
+  label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+  .row>*{flex:1;min-width:0}
+  .row>button{flex:none}
+
+  .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .kv .k{font-size:11px;color:var(--dim);letter-spacing:.3px}
+  .kv .v{font-size:16px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums;word-break:break-all}
+  .kv .v.sm{font-size:12px;font-weight:500;font-family:var(--mono);color:var(--muted);word-break:break-all}
+
+  .phase{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:10px;margin-bottom:16px;border:1px solid var(--line);flex-wrap:wrap}
+  .phase.p1{background:rgba(255,179,64,.08);border-color:rgba(255,179,64,.3)}
+  .phase.p2{background:rgba(76,141,255,.08);border-color:rgba(76,141,255,.3)}
+  .phase.p3{background:rgba(61,220,132,.08);border-color:rgba(61,220,132,.3)}
+  .phase b{font-size:16px}
+  .phase .cd{margin-left:auto;font:700 22px var(--mono);font-variant-numeric:tabular-nums}
+
+  .hint{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.6}
+  .warn-box{padding:11px 14px;border-radius:8px;background:rgba(255,179,64,.08);border:1px solid rgba(255,179,64,.3);color:#ffd193;font-size:12.5px;margin-bottom:14px;line-height:1.6}
+
+  #log{background:#080b11;border:1px solid var(--line);border-radius:10px;padding:12px 14px;height:250px;overflow:auto;font:12px/1.65 var(--mono);white-space:pre-wrap;word-break:break-all;-webkit-overflow-scrolling:touch}
+  #log .t{color:var(--dim)}
+  #log .ok{color:var(--green)}
+  #log .err{color:var(--red)}
+  #log .info{color:var(--blue)}
+  #log .warn{color:var(--amber)}
+
+  .sec{margin-top:18px}
+  .muted{color:var(--muted)}
+
+  /* 平板 & 小屏笔电 */
+  @media (max-width:900px){
+    .g3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+
+  /* 手机 */
+  @media (max-width:640px){
+    body{font-size:15px}
+    .wrap{padding:calc(14px + var(--safe-t)) 12px calc(80px + var(--safe-b))}
+    h1{font-size:17px}
+    h2{font-size:14px;margin:0 0 10px}
+    header{gap:8px;padding:10px 0 14px;margin-bottom:14px}
+    header > div:first-child{width:100%}
+    .spacer{display:none}
+    #netPill, #rolePill{flex:1;justify-content:center;text-align:center;font-size:11px;padding:6px 10px}
+    #btnConnect{width:100%;padding:12px 16px;min-height:44px;font-size:14px}
+    .card{padding:14px;border-radius:10px}
+    .sec{margin-top:12px}
+    .g2, .g3{grid-template-columns:1fr}
+    .row{flex-direction:column;align-items:stretch;gap:8px}
+    .row>*{width:100%}
+    .row>button{width:100%;padding:12px 16px;min-height:44px;font-size:14px}
+    button{padding:11px 14px;min-height:42px;font-size:14px}
+    button.sm{padding:8px 12px;min-height:36px;font-size:12px}
+    input,textarea{padding:12px 14px;font-size:14px;min-height:44px}
+    textarea{min-height:120px;font-size:13px}
+    .kv{grid-template-columns:1fr 1fr;gap:10px}
+    .kv .v{font-size:14px}
+    .kv .v.sm{font-size:11px}
+    .phase{padding:12px 14px}
+    .phase b{font-size:15px}
+    .phase .cd{font-size:18px;margin-left:0;width:100%;text-align:center;margin-top:6px}
+    .warn-box, .hint{font-size:12px}
+    #log{height:200px;font-size:11px;padding:10px}
+  }
+
+  /* 特小屏（iPhone SE 之类） */
+  @media (max-width:400px){
+    .kv{grid-template-columns:1fr}
+    .wrap{padding-left:10px;padding-right:10px}
+    .card{padding:12px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>CNY 开发者后台</h1>
+    <div class="sub">TRC20 · 交易开关 + 白名单 · TRON</div>
+  </div>
+  <div class="spacer"></div>
+  <span class="pill" id="netPill">未连接</span>
+  <span class="pill" id="rolePill" style="display:none"></span>
+  <button class="pri" id="btnConnect">连接 TronLink</button>
+</header>
+
+<div class="card">
+  <label>合约地址（部署后填这里，会存在浏览器本地）</label>
+  <div class="row">
+    <input id="addr" placeholder="T..." spellcheck="false" />
+    <button id="btnLoad">加载</button>
+  </div>
+  <div class="hint" id="addrHint">连上 TronLink 并填入合约地址后，下面才会显示状态。</div>
+</div>
+
+<div id="app" style="display:none">
+
+  <!-- 状态 -->
+  <div class="card sec">
+    <h2>合约状态</h2>
+    <div class="phase" id="phase"><b id="phaseName">—</b><span class="muted" id="phaseDesc"></span><span class="cd" id="countdown"></span></div>
+    <div class="kv">
+      <div><div class="k">总量</div><div class="v" id="vSupply">—</div></div>
+      <div><div class="k">我的余额</div><div class="v" id="vMyBal">—</div></div>
+      <div><div class="k">开盘时间</div><div class="v sm" id="vOpenAt">—</div></div>
+      <div><div class="k">Owner</div><div class="v sm" id="vOwner">—</div></div>
+    </div>
+  </div>
+
+  <!-- 交易开关 -->
+  <div class="card sec">
+    <h2>交易开关</h2>
+    <div class="warn-box" id="launchWarn" style="display:none"></div>
+    <div class="row">
+      <button class="pri" id="btnOpenTrading" style="flex:1">打开交易 openTrading()</button>
+    </div>
+    <div class="hint">
+      <b>只能打开一次，打开后永久开放，任何人（包括 owner）都关不掉。</b><br />
+      打开前：只要转账的一方是合约（SunSwap 池子、路由），另一方就必须在白名单里 —— 所以只有白名单能买、能卖、能加池子；钱包之间互相转账不受影响。
+      不需要登记池子地址，池子一创建就受保护。
+    </div>
+  </div>
+
+  <!-- 白名单 -->
+  <div class="card sec">
+    <h2>白名单</h2>
+    <div class="hint" style="margin:0 0 14px">交易开关打开前，只有白名单地址能在池子里买卖、加池子。部署地址默认在白名单里。<b>开盘后白名单不再有任何特权</b>，所有人一样。<br />白名单<b>只能加普通钱包</b>，合约地址（池子、路由、批量转账工具）会被合约拒绝。开盘前白名单用户买卖请直接用 SunSwap V2 路由、收款地址填自己。<br /><b>不要把池子地址提前加进白名单</b>：池子还没创建时它不是合约，合约拦不住；等池子建好，所有人都能通过它买卖，等于提前开盘。</div>
+    <div class="grid g2">
+      <div>
+        <label>单个地址</label>
+        <div class="row">
+          <input id="wlOne" placeholder="T..." spellcheck="false" />
+          <button id="btnWlAdd">加入</button>
+          <button id="btnWlDel">移出</button>
+        </div>
+        <div class="row sec">
+          <button class="sm" id="btnWlCheck" style="flex:1">查询该地址是否在白名单</button>
+        </div>
+      </div>
+      <div>
+        <label>批量（一行一个地址，一笔交易搞定）</label>
+        <textarea id="wlBatch" placeholder="T...&#10;T...&#10;T..." spellcheck="false"></textarea>
+        <div class="row sec">
+          <button id="btnWlBatchAdd" style="flex:1">批量加入</button>
+          <button id="btnWlBatchDel" style="flex:1">批量移出</button>
+          <button class="sm" id="btnWlBatchCheck">批量查询</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 所有权 -->
+  <div class="card sec">
+    <h2>所有权</h2>
+    <div class="row">
+      <div><label>转移 owner 到</label><input id="newOwner" placeholder="T..." spellcheck="false" /></div>
+      <button id="btnXferOwner">转移</button>
+      <button class="danger" id="btnRenounce">弃权（不可逆）</button>
+    </div>
+    <div class="hint">转移后当前钱包失去全部管理权限。<b>弃权只能在交易开关打开之后进行</b>（合约强制），防止弃权后交易永远打不开；弃权后白名单也再无法修改。</div>
+  </div>
+
+</div>
+
+<div class="card sec">
+  <h2>操作日志</h2>
+  <div id="log"></div>
+  <div class="hint">每一笔写操作都会<b>先免费模拟</b>（triggerconstantcontract），拿到真实能量消耗和回滚原因后才让你确认发送。模拟失败就不会发，避免 feeLimit 被烧光。</div>
+</div>
+
+</div>
+
+<script>
+/* ═══════════════════ 常量 ═══════════════════ */
+const GENESIS = {
+  "00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc": { name: "TRON 主网", scan: "https://tronscan.org", main: true },
+  "0000000000000000d698d4192c56cb6be724a558448e2684802de4d6cd8690dc": { name: "Nile 测试网", scan: "https://nile.tronscan.org", main: false },
+};
+const ENERGY_SUN = 100;       // 直接烧的能量单价
+const FEE_MARGIN = 1.4;       // feeLimit 余量：给少了会烧光再回滚
+
+const ABI = [
+  {"inputs":[],"name":"status","outputs":[{"type":"address"},{"type":"bool"},{"type":"uint64"},{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"type":"address"}],"name":"balanceOf","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"type":"address"}],"name":"isWhitelisted","outputs":[{"type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"type":"address[]"}],"name":"areWhitelisted","outputs":[{"type":"bool[]"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"openTrading","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"type":"address"},{"type":"bool"}],"name":"setWhitelist","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"type":"address[]"},{"type":"bool"}],"name":"setWhitelistBatch","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},
+];
+
+// 合约用自定义错误回滚，这里把 4 字节选择器翻译成中文原因
+const CUSTOM_ERRORS = {
+  "30cd7471": "不是 owner（当前钱包没有权限）",
+  "d92e233d": "地址不能是零地址",
+  "965f8d94": "交易开关已经打开过了",
+  "e09f0331": "交易开关还没打开（弃权必须在开盘之后）",
+  "f4d678b8": "余额不足",
+  "13be252b": "授权额度不足",
+  "c2e5347d": "批量列表是空的",
+  "a5c94054": "白名单只能加普通钱包，不能加合约地址（池子、路由、批量转账工具等）",
+  "1f2a2005": "不允许别人替你发起 0 金额转账（防地址投毒）",
+};
+
+/* ═══════════════════ 工具 ═══════════════════ */
+const $ = (s) => document.querySelector(s);
+let tw = null, net = null, me = null, addr = null, st = null, timer = null;
+
+function log(msg, cls = "") {
+  const el = $("#log");
+  const t = new Date().toLocaleTimeString("zh-CN", { hour12: false });
+  el.insertAdjacentHTML("beforeend", `<span class="t">[${t}]</span> <span class="${cls}">${msg}</span>\n`);
+  el.scrollTop = el.scrollHeight;
+}
+const fmt = (n, d = 18) => {
+  const s = BigInt(n).toString().padStart(d + 1, "0");
+  const i = s.slice(0, -d).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const f = s.slice(-d).replace(/0+$/, "");
+  return f ? `${i}.${f.slice(0, 4)}` : i;
+};
+const tsText = (ts) => (!ts ? "—" : new Date(Number(ts) * 1000).toLocaleString("zh-CN", { hour12: false }));
+const hhmmss = (s) => {
+  s = Math.max(0, Math.floor(s));
+  return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((x) => String(x).padStart(2, "0")).join(":");
+};
+
+/** 解码 Error(string) —— 合约回滚原因藏在 constant_result 里，外层 result.result 仍然是 true */
+function decodeRevert(constResult) {
+  const cr = (constResult || [])[0] || "";
+  if (cr && CUSTOM_ERRORS[cr.slice(0, 8)] && cr.length <= 8) return CUSTOM_ERRORS[cr.slice(0, 8)];
+  if (!cr || !cr.startsWith("08c379a0")) return cr ? "(未知回滚数据 0x" + cr.slice(0, 16) + "…)" : null;
+  const body = cr.slice(8);
+  const len = parseInt(body.slice(64, 128), 16);
+  const hex = body.slice(128, 128 + len * 2);
+  try { return decodeURIComponent(hex.replace(/../g, "%$&")); } catch { return hex; }
+}
+
+/* ═══════════════════ 连接 ═══════════════════ */
+async function connect() {
+  if (!window.tronLink && !window.tronWeb) {
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    log(isMobile
+      ? "没检测到 TronLink。请在 TronLink App 内打开此页面：打开 TronLink → 底部「发现」→ 输入此页面网址。"
+      : "没检测到 TronLink，请先在浏览器安装 TronLink 插件（tronlink.org）。", "err");
+    return;
+  }
+  try {
+    if (window.tronLink?.request) await window.tronLink.request({ method: "tron_requestAccounts" });
+  } catch (e) { log("TronLink 授权被拒绝。", "err"); return; }
+
+  tw = window.tronWeb;
+  if (!tw?.defaultAddress?.base58) { log("TronLink 未解锁或未选择账户。", "err"); return; }
+  me = tw.defaultAddress.base58;
+
+  // 判链用创世块哈希，不看节点地址字符串（节点可以自定义）
+  try {
+    const g = await tw.trx.getBlockByNumber(0);
+    net = GENESIS[g.blockID] || { name: "未知网络", scan: "", main: false };
+  } catch { net = { name: "网络未知", scan: "", main: false }; }
+
+  const p = $("#netPill");
+  p.textContent = `${net.name} · ${me.slice(0, 6)}…${me.slice(-4)}`;
+  p.className = "pill " + (net.main ? "warn" : "ok");
+  log(`已连接 ${net.name}，账户 ${me}`, "ok");
+  if (net.main) log("注意：当前是主网，所有操作都花真钱。", "warn");
+  $("#btnConnect").textContent = "已连接";
+  if (addr) await refresh();
+}
+
+/* ═══════════════════ 读状态 ═══════════════════ */
+async function contract() { return await tw.contract(ABI, addr); }
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * 带 429 重试 + 节流的 view 调用。
+ * TronGrid 免费额度 3 次/秒，并发多了会 429。串行 + 间隔 350ms + 指数退避重试。
+ */
+async function safeCall(callFn, label, retries = 4) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await callFn();
+    } catch (e) {
+      const msg = (e.message || JSON.stringify(e)).toLowerCase();
+      const is429 = msg.includes("429") || msg.includes("too many") || msg.includes("rate");
+      if (is429 && i < retries - 1) {
+        const wait = 800 * (i + 1);
+        log(`${label} 触发限流，${wait}ms 后重试…`, "warn");
+        await sleep(wait);
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
+async function refresh() {
+  if (!tw || !addr) return;
+  try {
+    const c = await contract();
+    // 串行读取 + 每次之间小间隔，避免 TronGrid 3 req/s 限流
+    const r = await safeCall(() => c.status().call(), "status");
+    const ZERO = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"; // TRON address(0) 的 base58
+    st = {
+      owner: tw.address.fromHex(r[0]), open: r[1], openedAt: Number(r[2]), supply: r[3].toString(),
+    };
+    await sleep(350);
+    const bal = await safeCall(() => c.balanceOf(me).call(), "balanceOf");
+
+    $("#vSupply").textContent = fmt(st.supply);
+    $("#vMyBal").textContent = fmt(bal.toString());
+    $("#vOpenAt").textContent = st.open ? tsText(st.openedAt) : "未开盘";
+    $("#vOwner").textContent = st.owner === ZERO ? "已弃权（零地址）" : st.owner;
+
+    const isOwner = st.owner === me;
+    const rp = $("#rolePill");
+    rp.style.display = "";
+    if (isOwner) { rp.textContent = "你是 owner"; rp.className = "pill ok"; }
+    else { rp.textContent = "只读（非 owner）"; rp.className = "pill bad"; }
+
+    document.querySelectorAll("#app button").forEach((b) => {
+      if (b.classList.contains("sm")) return; // 只读查询按钮永远可点
+      b.disabled = !isOwner;
+    });
+    if (st.open) $("#btnOpenTrading").disabled = true;   // 已开盘，按钮没用了
+    if (!st.open) $("#btnRenounce").disabled = true;     // 合约禁止开盘前弃权
+
+    paintPhase();
+    $("#app").style.display = "";
+  } catch (e) {
+    const msg = (e.message || String(e)).toLowerCase();
+    if (msg.includes("429") || msg.includes("too many") || msg.includes("rate")) {
+      log("TronGrid 触发限流（429），可能是刚才请求太密集。等 5-10 秒后再点【加载】重试即可。", "err");
+    } else {
+      log("读取合约失败：" + (e.message || e) + "（地址对吗？是不是连错网络了？）", "err");
+    }
+    $("#app").style.display = "none";
+  }
+}
+
+function paintPhase() {
+  if (!st) return;
+  const box = $("#phase"), warn = $("#launchWarn");
+  $("#countdown").textContent = "";
+  if (!st.open) {
+    box.className = "phase p1";
+    $("#phaseName").textContent = "① 未开盘";
+    $("#phaseDesc").textContent = "只有白名单能在池子里买卖、加池子；钱包之间互转不受影响";
+    warn.style.display = "";
+    warn.innerHTML = "顺序：<b>① 部署钱包先建池、加流动性（此前不要给任何人转币）→ ② 再转币、设白名单 → ③ 点「打开交易」</b>。打开后永久开放，关不掉。<br>加池前先核对池子储备是 0；如果池子已被别人建好并有储备，先停下来找技术确认。";
+  } else {
+    box.className = "phase p3";
+    $("#phaseName").textContent = "② 已开盘";
+    $("#phaseDesc").textContent = "所有人自由买卖，永久 —— 白名单已无特权";
+    warn.style.display = "none";
+  }
+}
+
+/* ═══════════════════ 写操作：先模拟，再发 ═══════════════════ */
+async function send(label, fnSig, params, confirmExtra) {
+  if (!tw || !addr) return;
+  try {
+    log(`【${label}】模拟中…`, "info");
+    const sim = await tw.transactionBuilder.triggerConstantContract(addr, fnSig, {}, params, me);
+
+    const reason = decodeRevert(sim.constant_result);
+    if (reason) { log(`模拟失败，合约会回滚：${reason}`, "err"); log("已中止，没有发送交易。", "warn"); return; }
+    if (sim.result && sim.result.result === false) {
+      log("模拟失败：" + (sim.result.message || "节点拒绝"), "err"); return;
+    }
+
+    const energy = Number(sim.energy_used || 0);
+    const feeLimit = Math.ceil(energy * FEE_MARGIN) * ENERGY_SUN;
+    const trx = (feeLimit / 1e6).toFixed(2);
+    log(`模拟通过：预计消耗 ${energy.toLocaleString()} energy，feeLimit 设为 ${trx} TRX`, "ok");
+
+    const msg = `${label}\n\n预计能量：${energy.toLocaleString()}\nfeeLimit：${trx} TRX\n网络：${net.name}` + (confirmExtra ? `\n\n${confirmExtra}` : "");
+    if (!confirm(msg + "\n\n确认发送？")) { log("已取消。", "warn"); return; }
+
+    const tx = await tw.transactionBuilder.triggerSmartContract(addr, fnSig, { feeLimit }, params, me);
+    const signed = await tw.trx.sign(tx.transaction);
+    const res = await tw.trx.sendRawTransaction(signed);
+    const id = res.txid || res.transaction?.txID;
+    if (!res.result && !id) { log("广播失败：" + JSON.stringify(res), "err"); return; }
+    log(`已广播：${id}`, "ok");
+    if (net.scan) log(`  ${net.scan}/#/transaction/${id}`, "info");
+    setTimeout(refresh, 4000);
+  } catch (e) {
+    log("出错：" + (e.message || JSON.stringify(e)), "err");
+  }
+}
+
+const A = (v) => ({ type: "address", value: v });
+const B = (v) => ({ type: "bool", value: v });
+const U64 = (v) => ({ type: "uint64", value: v });
+
+function validAddr(a, label) {
+  if (!a || !tw.isAddress(a)) { log(`${label} 不是合法的 TRON 地址：${a || "(空)"}`, "err"); return false; }
+  return true;
+}
+function parseList(text) {
+  const raw = text.split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean);
+  const bad = raw.filter((a) => !tw.isAddress(a));
+  if (bad.length) { log(`有 ${bad.length} 个地址格式不对，第一个：${bad[0]}`, "err"); return null; }
+  const uniq = [...new Set(raw)];
+  if (uniq.length !== raw.length) log(`去重：${raw.length} → ${uniq.length}`, "warn");
+  return uniq;
+}
+
+/* ═══════════════════ 事件绑定 ═══════════════════ */
+$("#btnConnect").onclick = connect;
+
+$("#btnLoad").onclick = async () => {
+  const a = $("#addr").value.trim();
+  if (!tw) { log("请先连接 TronLink。", "err"); return; }
+  if (!validAddr(a, "合约地址")) return;
+  addr = a;
+  localStorage.setItem("CNY_ADDR", a);
+  $("#addrHint").textContent = "已加载：" + a;
+  await refresh();
+};
+
+$("#btnOpenTrading").onclick = () => {
+  if (!confirm("⚠️ 打开交易后永久开放，任何人（包括你）都关不掉。\n\n请确认流动性已经加好、池子地址已核对。\n\n确定打开吗？")) return;
+  send("打开交易 openTrading()", "openTrading()", [], "只能做一次，无法撤销。");
+};
+
+$("#btnWlAdd").onclick = () => { const a = $("#wlOne").value.trim(); if (validAddr(a, "地址")) send("加入白名单 " + a, "setWhitelist(address,bool)", [A(a), B(true)]); };
+$("#btnWlDel").onclick = () => { const a = $("#wlOne").value.trim(); if (validAddr(a, "地址")) send("移出白名单 " + a, "setWhitelist(address,bool)", [A(a), B(false)]); };
+$("#btnWlCheck").onclick = async () => {
+  const a = $("#wlOne").value.trim(); if (!validAddr(a, "地址")) return;
+  const c = await contract(); const r = await safeCall(() => c.isWhitelisted(a).call(), "isWhitelisted");
+  log(`${a} ${r ? "在白名单里" : "不在白名单"}`, r ? "ok" : "warn");
+};
+$("#btnWlBatchAdd").onclick = () => {
+  const l = parseList($("#wlBatch").value); if (!l?.length) return;
+  send(`批量加入白名单（${l.length} 个地址）`, "setWhitelistBatch(address[],bool)", [{ type: "address[]", value: l }, B(true)]);
+};
+$("#btnWlBatchDel").onclick = () => {
+  const l = parseList($("#wlBatch").value); if (!l?.length) return;
+  send(`批量移出白名单（${l.length} 个地址）`, "setWhitelistBatch(address[],bool)", [{ type: "address[]", value: l }, B(false)]);
+};
+$("#btnWlBatchCheck").onclick = async () => {
+  const l = parseList($("#wlBatch").value); if (!l?.length) return;
+  const c = await contract(); const r = await c.areWhitelisted(l).call();
+  const arr = r[0] || r;
+  let inN = 0;
+  l.forEach((a, i) => { if (arr[i]) inN++; log(`  ${arr[i] ? "✓" : "✗"} ${a}`, arr[i] ? "ok" : ""); });
+  log(`批量查询：${inN}/${l.length} 在白名单里`, "info");
+};
+
+$("#btnXferOwner").onclick = () => {
+  const a = $("#newOwner").value.trim(); if (!validAddr(a, "新 owner")) return;
+  send("转移 owner 到 " + a, "transferOwnership(address)", [A(a)], "转移后你将失去全部管理权限（开交易、改白名单、弃权）。\n请务必确认新地址是你们自己控制的。");
+};
+$("#btnRenounce").onclick = () => {
+  if (!confirm("弃权后 owner 变成零地址，所有 owner 权限永久失效，白名单也再改不了。\n\n确定吗？")) return;
+  send("弃权 renounceOwnership()", "renounceOwnership()", [], "不可逆！");
+};
+
+/* 启动 */
+// v2 用新的存储键：旧浏览器里存的是 v1 合约地址，自动带出来会加载失败
+const DEFAULT_ADDR = ""; // 部署后填 CNY 合约地址
+const saved = localStorage.getItem("CNY_ADDR") || DEFAULT_ADDR;
+$("#addr").value = saved; addr = saved;
+log("等待连接 TronLink…", "info");
+if (window.tronLink || window.tronWeb) setTimeout(connect, 400);
+</script>
+</body>
+</html>
