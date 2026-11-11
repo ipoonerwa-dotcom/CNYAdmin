@@ -12,10 +12,10 @@ CNY 代币的**管理后台**（TRC20 · TRON 主网）。单文件 HTML，无�
 
 | 项 | 值 |
 |------|------|
-| 合约地址 | `（部署后填写）` |
+| 合约地址 | `TGRXf1CuYtJmkd9xnK5CWEfc4fVrcMC27L` |
 | 网络 | TRON 主网 |
 | 代币 | CNY（TRC20，18 位精度，总量 1 万亿，无手续费） |
-| TronScan | `https://tronscan.org/#/contract/（部署后填写）` |
+| TronScan | https://tronscan.org/#/contract/TGRXf1CuYtJmkd9xnK5CWEfc4fVrcMC27L |
 
 ---
 
@@ -57,7 +57,7 @@ CNY 代币的**管理后台**（TRC20 · TRON 主网）。单文件 HTML，无�
 
 1. 装 TronLink 浏览器插件，导入钱包，切到 TRON 主网
 2. 打开后台（推荐本地起服务：`python -m http.server 8890`，浏览器打开 http://localhost:8890）
-3. 右上角「连接 TronLink」→ 合约地址填 CNY 合约地址 → 点「加载」
+3. 右上角「连接 TronLink」→ 合约地址填 `TGRXf1CuYtJmkd9xnK5CWEfc4fVrcMC27L`（默认已填好）→ 点「加载」
 
 ---
 

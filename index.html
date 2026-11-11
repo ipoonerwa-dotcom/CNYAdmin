@@ -516,7 +516,7 @@ $("#btnRenounce").onclick = () => {
 
 /* 启动 */
 // v2 用新的存储键：旧浏览器里存的是 v1 合约地址，自动带出来会加载失败
-const DEFAULT_ADDR = ""; // 部署后填 CNY 合约地址
+const DEFAULT_ADDR = "TGRXf1CuYtJmkd9xnK5CWEfc4fVrcMC27L"; // CNY,TRON 主网,2026-11-11 部署
 const saved = localStorage.getItem("CNY_ADDR") || DEFAULT_ADDR;
 $("#addr").value = saved; addr = saved;
 log("等待连接 TronLink…", "info");
